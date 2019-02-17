@@ -9,7 +9,19 @@ var Caml_obj = require("bs-platform/lib/js/caml_obj.js");
 var Belt_List = require("bs-platform/lib/js/belt_List.js");
 var Pervasives = require("bs-platform/lib/js/pervasives.js");
 var ReasonReact = require("reason-react/src/ReasonReact.js");
+var Footer$TodoReason = require("./Footer.bs.js");
 var TodoItem$TodoReason = require("./TodoItem.bs.js");
+
+function urlShownOnPage(path) {
+  switch (path) {
+    case "active" : 
+        return /* Active */1;
+    case "completed" : 
+        return /* Completed */2;
+    default:
+      return /* All */0;
+  }
+}
 
 var component = ReasonReact.reducerComponent("Top");
 
@@ -19,7 +31,14 @@ function make(_children) {
           /* reactClassInternal */component[/* reactClassInternal */1],
           /* handedOffState */component[/* handedOffState */2],
           /* willReceiveProps */component[/* willReceiveProps */3],
-          /* didMount */component[/* didMount */4],
+          /* didMount */(function (self) {
+              var watchId = ReasonReact.Router[/* watchUrl */1]((function (url) {
+                      return Curry._1(self[/* send */3], /* Navigate */Block.__(2, [urlShownOnPage(url[/* hash */1])]));
+                    }));
+              return Curry._1(self[/* onUnmount */4], (function (param) {
+                            return ReasonReact.Router[/* unwatchUrl */2](watchId);
+                          }));
+            }),
           /* didUpdate */component[/* didUpdate */5],
           /* willUnmount */component[/* willUnmount */6],
           /* willUpdate */component[/* willUpdate */7],
@@ -28,8 +47,23 @@ function make(_children) {
               var send = param[/* send */3];
               var state = param[/* state */1];
               var todosLength = Belt_List.length(state[/* todos */1]);
+              var remaining = Belt_List.length(Belt_List.keep(state[/* todos */1], (function (todo) {
+                          return !todo[/* completed */2];
+                        })));
               var __x = state[/* todos */1];
-              var todos = Belt_List.map(__x, (function (todo) {
+              var __x$1 = Belt_List.keep(__x, (function (todo) {
+                      var match = state[/* nowShowing */2];
+                      switch (match) {
+                        case 0 : 
+                            return true;
+                        case 1 : 
+                            return !todo[/* completed */2];
+                        case 2 : 
+                            return todo[/* completed */2];
+                        
+                      }
+                    }));
+              var todos = Belt_List.map(__x$1, (function (todo) {
                       return ReasonReact.element(todo[/* id */0], undefined, TodoItem$TodoReason.make(todo, (function (_event) {
                                         return Curry._1(send, /* Toggle */Block.__(0, [todo]));
                                       }), (function (_event) {
@@ -42,6 +76,8 @@ function make(_children) {
                     }, React.createElement("ul", {
                           className: "todo-list"
                         }, Belt_List.toArray(todos)));
+              var match$1 = todosLength === 0;
+              var footer = match$1 ? null : ReasonReact.element(undefined, undefined, Footer$TodoReason.make(state[/* nowShowing */2], remaining, /* array */[]));
               return React.createElement("div", undefined, React.createElement("header", {
                               className: "header"
                             }, React.createElement("h1", undefined, "todos"), React.createElement("input", {
@@ -58,14 +94,15 @@ function make(_children) {
                                       }
                                     }),
                                   onChange: (function ($$event) {
-                                      return Curry._1(send, /* ChangeTodo */Block.__(2, [$$event.target.value]));
+                                      return Curry._1(send, /* ChangeTodo */Block.__(3, [$$event.target.value]));
                                     })
-                                })), main);
+                                })), main, footer);
             }),
           /* initialState */(function (param) {
               return /* record */[
                       /* newTodo */"",
-                      /* todos : [] */0
+                      /* todos : [] */0,
+                      /* nowShowing */urlShownOnPage(ReasonReact.Router[/* dangerouslyGetInitialUrl */3](/* () */0)[/* hash */1])
                     ];
             }),
           /* retainedProps */component[/* retainedProps */11],
@@ -86,7 +123,8 @@ function make(_children) {
                         ]);
                     return /* Update */Block.__(0, [/* record */[
                                 /* newTodo */"",
-                                /* todos */todos
+                                /* todos */todos,
+                                /* nowShowing */state[/* nowShowing */2]
                               ]]);
                   }
                 } else {
@@ -110,7 +148,8 @@ function make(_children) {
                             }));
                       return /* Update */Block.__(0, [/* record */[
                                   /* newTodo */state[/* newTodo */0],
-                                  /* todos */todos$1
+                                  /* todos */todos$1,
+                                  /* nowShowing */state[/* nowShowing */2]
                                 ]]);
                   case 1 : 
                       var todoItem$1 = action[0];
@@ -119,12 +158,20 @@ function make(_children) {
                             }));
                       return /* Update */Block.__(0, [/* record */[
                                   /* newTodo */state[/* newTodo */0],
-                                  /* todos */todos$2
+                                  /* todos */todos$2,
+                                  /* nowShowing */state[/* nowShowing */2]
                                 ]]);
                   case 2 : 
                       return /* Update */Block.__(0, [/* record */[
+                                  /* newTodo */state[/* newTodo */0],
+                                  /* todos */state[/* todos */1],
+                                  /* nowShowing */action[0]
+                                ]]);
+                  case 3 : 
+                      return /* Update */Block.__(0, [/* record */[
                                   /* newTodo */action[0],
-                                  /* todos */state[/* todos */1]
+                                  /* todos */state[/* todos */1],
+                                  /* nowShowing */state[/* nowShowing */2]
                                 ]]);
                   
                 }
@@ -134,6 +181,7 @@ function make(_children) {
         ];
 }
 
+exports.urlShownOnPage = urlShownOnPage;
 exports.component = component;
 exports.make = make;
 /* component Not a pure module */
