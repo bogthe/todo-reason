@@ -3,6 +3,8 @@ open Belt;
 type action =
     | NewTodoEnterKeyDown 
     | NewTodoOtherKeyDown
+    | Toggle(TodoItem.todo)
+    | Delete(TodoItem.todo)
     | ChangeTodo(string);
 
 type state = {
@@ -19,18 +21,33 @@ let make = _children => {
     switch (action) {
         | ChangeTodo(todoText) => ReasonReact.Update({ ...state, newTodo: todoText })
         | NewTodoOtherKeyDown => ReasonReact.NoUpdate
-        | NewTodoEnterKeyDown => {
-            let todos =
-                state.todos
-                @
-                [{
-                    id: string_of_float(Js.Date.now()),
-                    text: state.newTodo,
-                    completed: false
-                }]
-            ;
+        | NewTodoEnterKeyDown =>
+            switch(String.trim(state.newTodo)) {
+                | "" => ReasonReact.NoUpdate
+                | nonEmptyValue => {
+                    let todos =
+                        state.todos
+                        @
+                        [{
+                            id: string_of_float(Js.Date.now()),
+                            text: nonEmptyValue,
+                            completed: false
+                        }]
 
-            ReasonReact.Update({ todos, newTodo: "" });
+                    ;
+                    ReasonReact.Update({ todos, newTodo: "" });
+                }
+            }
+        | Toggle(todoItem) => {
+            let todos = List.map(state.todos, todo =>
+                todo == todoItem ? {...todo, TodoItem.completed: !todo.completed} : todo
+            );
+
+            ReasonReact.Update({ ...state, todos });
+        }
+        | Delete(todoItem) => {
+            let todos = List.keep(state.todos, todo => todo != todoItem);
+            ReasonReact.Update({ ...state, todos });
         }
     },
 
@@ -39,7 +56,12 @@ let make = _children => {
         let todos = 
             state.todos
             |> List.map(_, (todo) => 
-                <TodoItem key=todo.id todo />
+                <TodoItem
+                    key=todo.id
+                    todo
+                    onToggle=(_event => send(Toggle(todo)))
+                    onDestroy=(_event => send(Delete(todo)))
+                />
             );
 
         let main = 

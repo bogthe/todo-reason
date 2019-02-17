@@ -4,6 +4,8 @@
 var Block = require("bs-platform/lib/js/block.js");
 var Curry = require("bs-platform/lib/js/curry.js");
 var React = require("react");
+var $$String = require("bs-platform/lib/js/string.js");
+var Caml_obj = require("bs-platform/lib/js/caml_obj.js");
 var Belt_List = require("bs-platform/lib/js/belt_List.js");
 var Pervasives = require("bs-platform/lib/js/pervasives.js");
 var ReasonReact = require("reason-react/src/ReasonReact.js");
@@ -28,7 +30,11 @@ function make(_children) {
               var todosLength = Belt_List.length(state[/* todos */1]);
               var __x = state[/* todos */1];
               var todos = Belt_List.map(__x, (function (todo) {
-                      return ReasonReact.element(todo[/* id */0], undefined, TodoItem$TodoReason.make(todo, /* array */[]));
+                      return ReasonReact.element(todo[/* id */0], undefined, TodoItem$TodoReason.make(todo, (function (_event) {
+                                        return Curry._1(send, /* Toggle */Block.__(0, [todo]));
+                                      }), (function (_event) {
+                                        return Curry._1(send, /* Delete */Block.__(1, [todo]));
+                                      }), /* array */[]));
                     }));
               var match = todosLength === 0;
               var main = match ? null : React.createElement("section", {
@@ -52,7 +58,7 @@ function make(_children) {
                                       }
                                     }),
                                   onChange: (function ($$event) {
-                                      return Curry._1(send, /* ChangeTodo */[$$event.target.value]);
+                                      return Curry._1(send, /* ChangeTodo */Block.__(2, [$$event.target.value]));
                                     })
                                 })), main);
             }),
@@ -65,27 +71,63 @@ function make(_children) {
           /* retainedProps */component[/* retainedProps */11],
           /* reducer */(function (action, state) {
               if (typeof action === "number") {
-                if (action !== 0) {
-                  return /* NoUpdate */0;
+                if (action === 0) {
+                  var nonEmptyValue = $$String.trim(state[/* newTodo */0]);
+                  if (nonEmptyValue === "") {
+                    return /* NoUpdate */0;
+                  } else {
+                    var todos = Pervasives.$at(state[/* todos */1], /* :: */[
+                          /* record */[
+                            /* id */Pervasives.string_of_float(Date.now()),
+                            /* text */nonEmptyValue,
+                            /* completed */false
+                          ],
+                          /* [] */0
+                        ]);
+                    return /* Update */Block.__(0, [/* record */[
+                                /* newTodo */"",
+                                /* todos */todos
+                              ]]);
+                  }
                 } else {
-                  var todos = Pervasives.$at(state[/* todos */1], /* :: */[
-                        /* record */[
-                          /* id */Pervasives.string_of_float(Date.now()),
-                          /* text */state[/* newTodo */0],
-                          /* completed */false
-                        ],
-                        /* [] */0
-                      ]);
-                  return /* Update */Block.__(0, [/* record */[
-                              /* newTodo */"",
-                              /* todos */todos
-                            ]]);
+                  return /* NoUpdate */0;
                 }
               } else {
-                return /* Update */Block.__(0, [/* record */[
-                            /* newTodo */action[0],
-                            /* todos */state[/* todos */1]
-                          ]]);
+                switch (action.tag | 0) {
+                  case 0 : 
+                      var todoItem = action[0];
+                      var todos$1 = Belt_List.map(state[/* todos */1], (function (todo) {
+                              var match = Caml_obj.caml_equal(todo, todoItem);
+                              if (match) {
+                                return /* record */[
+                                        /* id */todo[/* id */0],
+                                        /* text */todo[/* text */1],
+                                        /* completed */!todo[/* completed */2]
+                                      ];
+                              } else {
+                                return todo;
+                              }
+                            }));
+                      return /* Update */Block.__(0, [/* record */[
+                                  /* newTodo */state[/* newTodo */0],
+                                  /* todos */todos$1
+                                ]]);
+                  case 1 : 
+                      var todoItem$1 = action[0];
+                      var todos$2 = Belt_List.keep(state[/* todos */1], (function (todo) {
+                              return Caml_obj.caml_notequal(todo, todoItem$1);
+                            }));
+                      return /* Update */Block.__(0, [/* record */[
+                                  /* newTodo */state[/* newTodo */0],
+                                  /* todos */todos$2
+                                ]]);
+                  case 2 : 
+                      return /* Update */Block.__(0, [/* record */[
+                                  /* newTodo */action[0],
+                                  /* todos */state[/* todos */1]
+                                ]]);
+                  
+                }
               }
             }),
           /* jsElementWrapped */component[/* jsElementWrapped */13]
